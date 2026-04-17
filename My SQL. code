@@ -1,0 +1,87 @@
+#CREATE THE DATABASE
+create database if not exists
+superstore_project;
+use superstore_project;
+
+#CREATE THE TABLE
+create table sales ( ship_mode varchar(255),segment varchar(255),country varchar(255),city varchar(255),
+state varbinary(255),postal_code int,region varchar(255),category varchar(255),sub_category varchar(255),
+sales decimal(10,4),quantity int,discount decimal(10,4),profit decimal(10,4));
+
+#IMPORTING FILE
+#VERIFY THE DATA IS ACTUALLY THERE
+use superstore_project;
+select *
+from sales limit 10;
+
+select count(*) as total_rows
+from sales;
+
+#SEE THE TOTAL REVENUE AND PROFIT
+select sum(sales)as total_revenue,sum(Profit)as total_profit,avg(discount)as average_discount
+from sales;
+
+#PERFORMANCE BY CATEGORY
+select Category,sum(sales)as revenue,sum(profit)as profit
+from sales
+group by category
+order by revenue desc;
+
+#THE LOSS MAKING ANALYSIS
+select sub_category,sum(profit)as total_profit
+from sales
+group by sub_category
+having sum(profit)<0
+order by total_profit asc;
+
+#FIND THE TOP 5 MOST PROFITABLE CITIES
+select city,state,sum(profit)as total_profit
+from sales
+group by city,state
+order by total_profit desc
+limit 5;
+
+#FIND THE 5 LEAST PROFITABLE PRODUCTS
+select Category,sub_category,sum(sales)as total_sales,sum(profit)as total_profit
+from sales
+group by Category, sub_category
+order by total_profit asc
+limit 5;
+
+#THE HIGH DISCOUNT CHECK 
+select Category,avg(discount)*100 as avg_discount_percent,sum(Profit) as total_profit
+from sales
+group by Category
+order by avg_discount_percent desc;
+
+#SHIPPING MODE PERFORMANCE
+select Ship_mode,count(*) as total_orders,sum(sales) as total_sales,avg(profit) as avg_profit_per_order
+from sales
+group by ship_mode
+order by avg_profit_per_order desc;
+
+#CUSTOMER SEGMENTS
+select segment,count(distinct city) as cities_reached,sum(sales) as total_revenue,sum(profit) as total_profit,
+round((sum(profit)/nullif(sum(sales),0))*100,2) as profit_margin_percent
+from sales
+group by segment
+order by profit_margin_percent desc;
+
+#THE HIGH SALES,HIGH LOSS MYSTERY 
+select Category,sub_category,sum(sales) as total_sales,sum(profit) as total_profit,round(sum(profit)/sum(sales)*100,2) as profit_margin
+from sales
+group by Category,sub_category
+having sum(profit)<0
+order by total_profit asc;
+
+#REGIONAL PERFORMANCE DEEP DIVE
+SELECT 
+    Region,
+    COUNT(DISTINCT City) AS Total_Cities,
+    SUM(Sales) AS Total_Sales,
+    SUM(Profit) AS Total_Profit,
+    ROUND((SUM(Profit) / SUM(Sales)) * 100, 2) AS Profit_Margin
+FROM
+    sales
+GROUP BY Region
+ORDER BY Profit_Margin DESC;
